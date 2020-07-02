@@ -96,9 +96,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 6;
         Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, options);
-        //bitmap=Bitmap_C.Re_Scale_Bitmap(bitmap,Picture_W,Picture_H);
-        Log.d("OnEEE",String.valueOf(bitmap.getHeight()));
-        Log.d("OnEEE",String.valueOf(bitmap.getWidth()));
         imageView.setImageBitmap(bitmap);
 
         TessBaseAPI ocrApi = new TessBaseAPI();
@@ -119,9 +116,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.d("TAG-RE", ocrResult);
         txtResult.setText(ocrResult);
         File file= new File(mCurrentPhotoPath);
-        Log.d("RRRR_ME",String.valueOf(file.exists()));
-        Log.d("RRRR_ME",String.valueOf(file.getParent()));
-        Log.d("RRRR_ME",String.valueOf(file.getName()));
         if(file.exists())
             file.delete();
     }
