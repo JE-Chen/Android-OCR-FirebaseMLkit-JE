@@ -63,16 +63,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int REQUEST_GET_SPEECH = 2;
     static final int TTS_CHECK_CODE=3;
 
-    Zip_Process Zip = new Zip_Process();
-    public Download_File Downloader;
-
     static String TESSBASE_PATH = "";
 
     String mCurrentPhotoPath;
-
-    Bitmap_Process Bitmap_C;
-     int Picture_H;
-     int Picture_W;
 
     static final String DEFAULT_LANGUAGE = "eng";
     static final String CHINESE_LANGUAGE = "chi_tra";
@@ -224,10 +217,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkIntent, TTS_CHECK_CODE);
 
-        Bitmap_C = new Bitmap_Process(getApplicationContext());
-        Picture_H= (int) Bitmap_Process.pxFromDp(getApplicationContext(),800);
-        Picture_W= (int) Bitmap_Process.pxFromDp(getApplicationContext(),800);
-
         imageView=findViewById(R.id.imageView);
         txtResult = findViewById(R.id.textView);
 
@@ -243,20 +232,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         instructions=findViewById(R.id.instructions);
         instructions.setOnClickListener(this);
 
-        /*
-        try {
-            Zip.upZipFile(new File(getApplicationContext().getFilesDir()+ "/datazh.zip"),getApplicationContext().getFilesDir().getPath()+"/tessdata");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
-
-
         TESSBASE_PATH = getApplicationContext().getFilesDir().getPath() + "/";
-
-        //Download_File Downloader =new Download_File(getApplicationContext());
-        //Downloader.execute("https://drive.google.com/u/0/uc?id=1Y2F1S0-pRUewkIv_hHG-oL-IZ2rm7_QM&export=download","datazh.zip");
-
 
         FirebaseModelManager modelManager = FirebaseModelManager.getInstance();
         // Create an English-German translator:
@@ -405,31 +381,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     e.printStackTrace();
                 }
                 int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,ExifInterface.ORIENTATION_NORMAL);
-                Log.d("REEE",String.valueOf(orientation));
-
 
                 switch(orientation) {
 
                     case ExifInterface.ORIENTATION_ROTATE_90:
-                        Log.d("ORJE",String.valueOf(ExifInterface.ORIENTATION_ROTATE_90));
-                        Log.d("ORJE","ORIENTATION_ROTATE_90");
                         bitmap = rotateImage(bitmap, 90);
                         break;
 
                     case ExifInterface.ORIENTATION_ROTATE_180:
-                        Log.d("ORJE",String.valueOf(ExifInterface.ORIENTATION_ROTATE_180));
-                        Log.d("ORJE","ORIENTATION_ROTATE_180");
                         bitmap = rotateImage(bitmap, 180);
                         break;
 
                     case ExifInterface.ORIENTATION_ROTATE_270:
-                        Log.d("ORJE",String.valueOf(ExifInterface.ORIENTATION_ROTATE_270));
-                        Log.d("ORJE","ORIENTATION_ROTATE_270");
                         bitmap = rotateImage(bitmap, 270);
                         break;
 
                     case ExifInterface.ORIENTATION_NORMAL:
-                        Log.d("ORJE","ORIENTATION_NORMAL");
+                        Log.d("JE","ORIENTATION_NORMAL");
                     default:
                         break;
                 }
