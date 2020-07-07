@@ -1,1 +1,1 @@
-# Android-OCR-JE
+# Android-OCR use Firebase MLkit
