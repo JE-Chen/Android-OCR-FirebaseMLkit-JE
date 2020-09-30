@@ -1,23 +1,13 @@
 package com.je_chen.je_ocr;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-import androidx.exifinterface.media.ExifInterface;
-
+import android.Manifest;
 import android.content.ActivityNotFoundException;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -26,11 +16,17 @@ import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
+import androidx.exifinterface.media.ExifInterface;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -41,52 +37,44 @@ import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguag
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateRemoteModel;
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslator;
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslatorOptions;
-import com.googlecode.leptonica.android.WriteFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextToSpeech.OnInitListener {
+import okhttp3.Callback;
 
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextToSpeech.OnInitListener, MessageCallBack{
+
+    private Callback messageCallBack;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_GET_SPEECH = 2;
-    static final int TTS_CHECK_CODE=3;
-
-    Zip_Process Zip = new Zip_Process();
-    public Download_File Downloader;
-
-    static String TESSBASE_PATH = "";
-
-    String mCurrentPhotoPath;
-
-    Bitmap_Process Bitmap_C;
-     int Picture_H;
-     int Picture_W;
-
+    static final int TTS_CHECK_CODE = 3;
+    static final int WRITE_EXTERNAL_STORAGE = 4;
     static final String DEFAULT_LANGUAGE = "eng";
     static final String CHINESE_LANGUAGE = "chi_tra";
-
+    static String TESSBASE_PATH = "";
+    public Download_File Downloader;
+    Zip_Process Zip = new Zip_Process();
+    String mCurrentPhotoPath;
+    Bitmap_Process Bitmap_C;
+    int Picture_H;
+    int Picture_W;
     TextToSpeech tts;
 
     FirebaseTranslator English_to_Zh;
-
-    //圖片名稱
-    private String filename;
-
     ImageView imageView;
     TextView txtResult;
-    ImageButton voice,translate,take_picture,instructions;
+    ImageButton voice, translate, take_picture, instructions;
+    //圖片名稱
+    private String filename;
 
     public static Bitmap rotateImage(Bitmap source, float angle) {
         Matrix matrix = new Matrix();
@@ -96,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
     public String ocrWithEnglish() {
         String resString = "";
 
@@ -104,8 +91,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         options.inSampleSize = 6;
         Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, options);
         //bitmap=Bitmap_C.Re_Scale_Bitmap(bitmap,Picture_W,Picture_H);
-        Log.d("OnEEE",String.valueOf(bitmap.getHeight()));
-        Log.d("OnEEE",String.valueOf(bitmap.getWidth()));
+        Log.d("OnEEE", String.valueOf(bitmap.getHeight()));
+        Log.d("OnEEE", String.valueOf(bitmap.getWidth()));
         imageView.setImageBitmap(bitmap);
 
         TessBaseAPI ocrApi = new TessBaseAPI();
@@ -125,11 +112,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String ocrResult = ocrWithEnglish();
         Log.d("TAG-RE", ocrResult);
         txtResult.setText(ocrResult);
-        File file= new File(mCurrentPhotoPath);
-        Log.d("RRRR_ME",String.valueOf(file.exists()));
-        Log.d("RRRR_ME",String.valueOf(file.getParent()));
-        Log.d("RRRR_ME",String.valueOf(file.getName()));
-        if(file.exists())
+        File file = new File(mCurrentPhotoPath);
+        Log.d("RRRR_ME", String.valueOf(file.exists()));
+        Log.d("RRRR_ME", String.valueOf(file.getParent()));
+        Log.d("RRRR_ME", file.getName());
+        if (file.exists())
             file.delete();
     }
 
@@ -141,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             public void onSuccess(@NonNull String translatedText) {
                                 // Translation successful.
                                 Log.d("Hello", translatedText);
-                                Toast.makeText(getApplicationContext(),translatedText,Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), translatedText, Toast.LENGTH_LONG).show();
                             }
                         })
                 .addOnFailureListener(
@@ -187,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.je_chen.je_ocr.android.fileprovider",
                         photoFile);
-                Log.d("Photo_URL",String.valueOf(photoURI));
+                Log.d("Photo_URL", String.valueOf(photoURI));
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
@@ -211,9 +198,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -225,26 +209,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivityForResult(checkIntent, TTS_CHECK_CODE);
 
         Bitmap_C = new Bitmap_Process(getApplicationContext());
-        Picture_H= (int) Bitmap_Process.PX_Form_DP(getApplicationContext(),800);
-        Picture_W= (int) Bitmap_Process.DP_From_PX(getApplicationContext(),800);
+        Picture_H = (int) Bitmap_Process.PX_Form_DP(getApplicationContext(), 800);
+        Picture_W = (int) Bitmap_Process.DP_From_PX(getApplicationContext(), 800);
 
-        imageView=findViewById(R.id.imageView);
+        imageView = findViewById(R.id.imageView);
         txtResult = findViewById(R.id.textView);
 
-        voice=findViewById(R.id.voice);
+        voice = findViewById(R.id.voice);
         voice.setOnClickListener(this);
 
-        take_picture=findViewById(R.id.take_picture);
+        take_picture = findViewById(R.id.take_picture);
         take_picture.setOnClickListener(this);
 
-        translate=findViewById(R.id.translate);
+        translate = findViewById(R.id.translate);
         translate.setOnClickListener(this);
-        instructions=findViewById(R.id.instructions);
+        instructions = findViewById(R.id.instructions);
         instructions.setOnClickListener(this);
 
+        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, WRITE_EXTERNAL_STORAGE);
+        }
+
+        Download_File Downloader = new Download_File(4);
+        Downloader.download("https://drive.google.com/u/0/uc?id=1Y2F1S0-pRUewkIv_hHG-oL-IZ2rm7_QM&export=download",getFilesDir().getPath(),"data.zip", this);
 
 
-        Log.d("File exists", String.valueOf(new File(getApplicationContext().getFilesDir()+ "/datazh.zip").exists()));
+
+        Log.d("File_exists", String.valueOf(new File(getApplicationContext().getFilesDir() + "/datazh.zip").exists()));
         /*
         try {
             Zip.upZipFile(new File(getApplicationContext().getFilesDir()+ "/datazh.zip"),getApplicationContext().getFilesDir().getPath()+"/tessdata");
@@ -256,16 +247,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         TESSBASE_PATH = getApplicationContext().getFilesDir().getPath() + "/";
 
-        //Download_File Downloader =new Download_File(getApplicationContext());
-        //Downloader.execute("https://drive.google.com/u/0/uc?id=1Y2F1S0-pRUewkIv_hHG-oL-IZ2rm7_QM&export=download","datazh.zip");
-
-
         FirebaseModelManager modelManager = FirebaseModelManager.getInstance();
         // Create an English-German translator:
         FirebaseTranslatorOptions options =
                 new FirebaseTranslatorOptions.Builder()
                         .setSourceLanguage(FirebaseTranslateLanguage.EN)
-                            .setTargetLanguage(FirebaseTranslateLanguage.ZH)
+                        .setTargetLanguage(FirebaseTranslateLanguage.ZH)
                         .build();
 
         English_to_Zh = FirebaseNaturalLanguage.getInstance().getTranslator(options);
@@ -312,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         // shutdown tts
         if (tts != null) {
@@ -354,12 +341,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 onResume();
-                                if(!txtResult.getText().toString().equals("")) {
+                                if (!txtResult.getText().toString().equals("")) {
                                     tts.speak(txtResult.getText().toString(), TextToSpeech.QUEUE_FLUSH, null, null); //發音
                                     Toast.makeText(getApplicationContext(), "正在唸\n" + txtResult.getText().toString(), Toast.LENGTH_LONG).show();
                                 }
                             }
-                    }).show();
+                        }).show();
                 break;
 
             case R.id.translate:
@@ -406,39 +393,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,ExifInterface.ORIENTATION_NORMAL);
-                Log.d("REEE",String.valueOf(orientation));
+                int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                Log.d("REEE", String.valueOf(orientation));
 
 
-                switch(orientation) {
+                switch (orientation) {
 
                     case ExifInterface.ORIENTATION_ROTATE_90:
-                        Log.d("ORJE",String.valueOf(ExifInterface.ORIENTATION_ROTATE_90));
-                        Log.d("ORJE","ORIENTATION_ROTATE_90");
+                        Log.d("ORJE", String.valueOf(ExifInterface.ORIENTATION_ROTATE_90));
+                        Log.d("ORJE", "ORIENTATION_ROTATE_90");
                         bitmap = rotateImage(bitmap, 90);
                         break;
 
                     case ExifInterface.ORIENTATION_ROTATE_180:
-                        Log.d("ORJE",String.valueOf(ExifInterface.ORIENTATION_ROTATE_180));
-                        Log.d("ORJE","ORIENTATION_ROTATE_180");
+                        Log.d("ORJE", String.valueOf(ExifInterface.ORIENTATION_ROTATE_180));
+                        Log.d("ORJE", "ORIENTATION_ROTATE_180");
                         bitmap = rotateImage(bitmap, 180);
                         break;
 
                     case ExifInterface.ORIENTATION_ROTATE_270:
-                        Log.d("ORJE",String.valueOf(ExifInterface.ORIENTATION_ROTATE_270));
-                        Log.d("ORJE","ORIENTATION_ROTATE_270");
+                        Log.d("ORJE", String.valueOf(ExifInterface.ORIENTATION_ROTATE_270));
+                        Log.d("ORJE", "ORIENTATION_ROTATE_270");
                         bitmap = rotateImage(bitmap, 270);
                         break;
 
                     case ExifInterface.ORIENTATION_NORMAL:
-                        Log.d("ORJE","ORIENTATION_NORMAL");
+                        Log.d("ORJE", "ORIENTATION_NORMAL");
                     default:
                         break;
                 }
                 //bitmap=Bitmap_C.Re_Scale_Bitmap(bitmap,Picture_W,Picture_H);
                 //imageView.setImageBitmap(bitmap);
-                Log.d("Reee",String.valueOf(bitmap.getHeight()));
-                Log.d("Reee",String.valueOf(bitmap.getWidth()));
+                Log.d("Reee", String.valueOf(bitmap.getHeight()));
+                Log.d("Reee", String.valueOf(bitmap.getWidth()));
                 File f = new File(mCurrentPhotoPath);
                 try (FileOutputStream out = new FileOutputStream(f)) {
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
@@ -450,18 +437,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         //文字語音輸入
-        if(requestCode == REQUEST_GET_SPEECH){
-            if(resultCode == RESULT_OK && data != null){
+        if (requestCode == REQUEST_GET_SPEECH) {
+            if (resultCode == RESULT_OK && data != null) {
                 ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 //txtResult.setText(result.get(0));
-                if(result.get(0).equals("拍照")) {
+                if (result.get(0).equals("拍照")) {
                     prc_camera();
-                }else if(result.get(0).equals("翻譯")) {
+                } else if (result.get(0).equals("翻譯")) {
                     Translate(English_to_Zh, txtResult.getText().toString());
-                }else if(result.get(0).equals("唸出來")) {
+                } else if (result.get(0).equals("唸出來")) {
                     if (!txtResult.getText().toString().equals(""))
                         tts.speak(txtResult.getText().toString(), TextToSpeech.QUEUE_FLUSH, null, null); //發音
-                        Toast.makeText(getApplicationContext(),"正在唸\n"+txtResult.getText().toString(),Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "正在唸\n" + txtResult.getText().toString(), Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -484,4 +471,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
+
+    @Override
+    public void onDownloadStarted(long totalLength) {
+        Log.d("totalLength", String.valueOf(totalLength));
+    }
+
+    @Override
+    public void onDownloadProgress(long downloadedLength) {
+        Log.d("downloadedLength", String.valueOf(downloadedLength));
+    }
+
+    @Override
+    public void onDownloadComplete(File file) {
+        Log.d("DownloadComplete",file.getName());
+    }
+
+    @Override
+    public void onDownloadError(Exception e) {
+        Log.d("Exception",e.toString());
+    }
+
 }
