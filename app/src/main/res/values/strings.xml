@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">JE-OCR</string>
+
+
+    <string name="Voice_Choice">請說話</string>
+    <string name="Voice_Input">請說話</string>
+    <string name="Voice_Output">唸出來</string>
+
+    <string name="instruction_title">JE-OCR</string>
+    <string name="instruction_content">JE-OCR</string>
+    <string name="instruction_button_text">JE-OCR</string>
+</resources>
