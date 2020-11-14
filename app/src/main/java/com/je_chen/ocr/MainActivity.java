@@ -32,7 +32,6 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.ml.common.modeldownload.FirebaseModelDownloadConditions;
 import com.google.firebase.ml.common.modeldownload.FirebaseModelManager;
 import com.google.firebase.ml.naturallanguage.FirebaseNaturalLanguage;
@@ -175,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.je_chen.je_ocr.android.fileprovider",
+                        "com.je_chen.ocr.fileprovider",
                         photoFile);
                 Log.d("Photo_URL", String.valueOf(photoURI));
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
@@ -234,19 +233,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, WRITE_EXTERNAL_STORAGE);
         }
 
-        Download_File Downloader = new Download_File(4);
-        Downloader.download("https://drive.google.com/u/0/uc?id=1Y2F1S0-pRUewkIv_hHG-oL-IZ2rm7_QM&export=download",getFilesDir().getPath(),"data.zip", this);
+
+        if(!new File(getApplicationContext().getFilesDir() + "/data.zip").exists()) {
+            Download_File Downloader = new Download_File(4);
+            Downloader.download("https://drive.google.com/u/0/uc?id=1Y2F1S0-pRUewkIv_hHG-oL-IZ2rm7_QM&export=download", getFilesDir().getPath(), "data.zip", this);
+        }
 
 
+        Log.d("File_exists", String.valueOf(new File(getApplicationContext().getFilesDir() + "/data.zip").exists()));
 
-        Log.d("File_exists", String.valueOf(new File(getApplicationContext().getFilesDir() + "/datazh.zip").exists()));
-        /*
         try {
-            Zip.upZipFile(new File(getApplicationContext().getFilesDir()+ "/datazh.zip"),getApplicationContext().getFilesDir().getPath()+"/tessdata");
+            Zip.upZipFile(new File(getApplicationContext().getFilesDir()+ "/data.zip"),getApplicationContext().getFilesDir().getPath()+"/tessdata");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        */
+
 
 
         TESSBASE_PATH = getApplicationContext().getFilesDir().getPath() + "/";
